@@ -12,6 +12,8 @@ export default defineConfig({
         doctorDetails: resolve(__dirname, 'pages/doctor-details.html'),
         payment: resolve(__dirname, 'pages/payment.html'),
         doctorDashboard: resolve(__dirname, 'pages/doctor-dashboard.html'),
+        login: resolve(__dirname, 'pages/login.html'),
+        confirmation: resolve(__dirname, 'pages/confirmation.html'),
       },
     },
   },
