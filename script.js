@@ -1,7 +1,7 @@
 // Global Configuration for Deployment
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:3001' 
-    : ''; // For production, leave blank or set to your backend URL
+    : 'https://care-connect-backend-e7rp.onrender.com';
 
 // Dummy Data for Doctors
 const doctors = [
