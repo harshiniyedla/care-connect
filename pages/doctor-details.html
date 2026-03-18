@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Details - CareConnect</title>
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         .profile-container {
@@ -90,12 +90,12 @@
 <body>
 
     <nav>
-        <a href="../index.html" class="logo">CareConnect</a>
+        <a href="/" class="logo">CareConnect</a>
         <button class="mobile-menu-btn">☰</button>
         <ul class="nav-links">
-            <li><a href="../index.html">Home</a></li>
-            <li><a href="doctors.html">Doctors</a></li>
-            <li><a href="appointments.html">My Appointments</a></li>
+            <li><a href="/">Home</a></li>
+            <li><a href="/pages/doctors.html">Doctors</a></li>
+            <li><a href="/pages/appointments.html">My Appointments</a></li>
         </ul>
     </nav>
 
@@ -106,7 +106,7 @@
             <!-- Details injected by JS -->
         </div>
     </div>
-    <script type="module" src="/script.js"></script>
+    <script src="/script.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const docId = urlParams.get('id');
@@ -116,7 +116,7 @@
         if (doctor) {
             container.innerHTML = `
                 <div class="profile-img">
-                    <img src="../${doctor.image}" alt="${doctor.name}" onerror="this.src='https://images.unsplash.com/photo-1559839734-2b71f1e598c6?w=400'">
+                    <img src="/${doctor.image}" alt="${doctor.name}" onerror="this.src='https://images.unsplash.com/photo-1559839734-2b71f1e598c6?w=400'">
                 </div>
                 <div class="profile-info">
                     <h2>${doctor.name}</h2>
