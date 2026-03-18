@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments - CareConnect</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .appt-card {
+            background-color: var(--card-bg);
+            border-left: 5px solid var(--primary-color);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-badge {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .no-appt {
+            text-align: center;
+            color: #777;
+            margin-top: 50px;
+        }
+
+        @media (max-width: 600px) {
+            .appt-card {
+                flex-direction: column;
+                text-align: flex-start;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="../index.html" class="logo">CareConnect</a>
+        <button class="mobile-menu-btn">☰</button>
+        <ul class="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="doctors.html">Doctors</a></li>
+            <li><a href="appointments.html" class="active">My Appointments</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2 class="text-center mt-20 mb-20">Your Appointments</h2>
+
+        <div id="clearContainer" class="text-center mb-20" style="display: none;">
+            <button onclick="clearData()" class="btn" style="background-color: #e74c3c;">Clear All Appointments</button>
+        </div>
+
+        <div id="appointmentsList" style="max-width: 800px; margin: 0 auto;">
+            <!-- JS Injection -->
+        </div>
+    </div>
+
+    <script src="../script.js?v=37"></script>
+    <script>
+        requireAuth('patient');
+        const user = getCurrentUser();
+        const list = document.getElementById('appointmentsList');
+        const clearContainer = document.getElementById('clearContainer');
+        const allAppointments = getAppointments();
+
+        // Filter: Only show appointments for the logged-in user
+        const appointments = allAppointments.filter(appt => appt.patientName === user.name);
+
+        if (appointments.length === 0) {
+            clearContainer.style.display = 'none';
+            list.innerHTML = `<div class="no-appt">
+                <h3>No appointments yet.</h3>
+                <p>Go to the Doctors page to book your first appointment.</p>
+                <a href="doctors.html" class="btn" style="margin-top:20px;">Book Now</a>
+            </div>`;
+        } else {
+            clearContainer.style.display = 'block';
+            // Sort by latest first (in a real app, date sort, but here just reverse for latest entry)
+            appointments.reverse().forEach(appt => {
+                const card = document.createElement('div');
+                card.className = 'appt-card';
+                card.innerHTML = `
+                    <div>
+                        <h3>${appt.doctorName}</h3>
+                        <p style="color: #666;">${appt.doctorSpec}</p>
+                        <p><strong>Date:</strong> ${appt.date} | <strong>Time:</strong> ${appt.time}</p>
+                        <p><small>Patient: ${appt.patientName}</small></p>
+                    </div>
+                    <div>
+                        <span class="status-badge">✅ ${appt.status}</span>
+                        <div style="margin-top:5px; font-size:0.8rem; color:#999; text-align:right;">ID: ${appt.id}</div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+    </script>
+</body>
+
+</html>

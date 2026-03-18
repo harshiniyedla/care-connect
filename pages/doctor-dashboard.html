@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - CareConnect</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--secondary-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        body.dark-mode tr:hover {
+            background-color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="../index.html" class="logo">CareConnect</a>
+        <button class="mobile-menu-btn">☰</button>
+        <ul class="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="doctors.html">Doctors</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h2 id="docName">Welcome, Dr. ...</h2>
+                <p>Manage your upcoming appointments</p>
+            </div>
+            <div class="date-display" id="dateDisplay"></div>
+        </div>
+
+        <div class="stats-cards">
+            <div class="stat-card">
+                <h3 id="countTotal">0</h3>
+                <p>Total Appointments</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="countToday">0</h3>
+                <p>Today's Appointments</p>
+            </div>
+        </div>
+
+        <!-- =====================================================
+             ADDED: Weekly Default Schedule Section
+        ====================================================== -->
+        <div class="stat-card" style="text-align: left; margin-bottom: 30px; padding: 25px;">
+            <h3>📅 Default Weekly Schedule</h3>
+            <p style="color: #666; margin-bottom: 15px;">Set your standard working hours for each day. The system will
+                automatically generate slots based on this.</p>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border: none; box-shadow: none;">
+                    <thead>
+                        <tr style="background: #f8f9fa; color: #333;">
+                            <th style="background: #f8f9fa; color: #333;">Day</th>
+                            <th style="background: #f8f9fa; color: #333;">Start Time</th>
+                            <th style="background: #f8f9fa; color: #333;">End Time</th>
+                            <th style="background: #f8f9fa; color: #333;">Duration (Min)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weeklyScheduleBody">
+                        <!-- Rows injected by JS for each day -->
+                    </tbody>
+                </table>
+            </div>
+            <button onclick="saveWeeklySchedule()" class="btn" style="margin-top: 15px; width: 100%;">Save Weekly
+                Schedule</button>
+        </div>
+
+        <!-- =====================================================
+             REMAINING: Manage Availability (Overrides)
+        ====================================================== -->
+        <div class="stat-card" style="text-align: left; margin-bottom: 30px; padding: 25px;">
+            <h3>⚡ Date Overrides & Blocks</h3>
+            <p style="color: #666; margin-bottom: 15px;">Add custom slots or block specific days. **Custom slots will
+                override your weekly schedule.**</p>
+
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label>Select Date:</label>
+                    <input type="date" id="availDate"
+                        style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label>Add Custom Slot (Optional):</label>
+                    <input type="time" id="availTime"
+                        style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+                </div>
+                <button onclick="addSlot()" class="btn">Add Slot</button>
+                <button onclick="blockDay()" class="btn" style="background-color: #e74c3c;">Block Full Day</button>
+            </div>
+
+            <div id="slotsList"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                <!-- Slots will be loaded here -->
+            </div>
+        </div>
+
+        <h3>Upcoming Appointments</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="apptTable">
+                    <!-- Rows injected by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../script.js?v=37"></script>
+    <script>
+        // Auth Check
+        requireAuth('doctor');
+
+        const user = getCurrentUser();
+        document.getElementById('docName').innerText = `Welcome, ${user.name}`;
+
+        // Date
+        document.getElementById('dateDisplay').innerText = new Date().toDateString();
+
+        // Data
+        const allAppts = getAppointments();
+        // Filter for this doctor (using name match for simplicity, ideally ID)
+        const myAppts = allAppts.filter(a => a.doctorName === user.name);
+
+        // Stats
+        document.getElementById('countTotal').innerText = myAppts.length;
+        const today = new Date().toISOString().split('T')[0];
+        const todayCount = myAppts.filter(a => a.date === today).length;
+        document.getElementById('countToday').innerText = todayCount;
+
+        // Load stats and table (existing)
+        // ... (preserving logic above)
+
+        // =====================================================
+        //  ADDED: Weekly Schedule Logic
+        // =====================================================
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const weeklyBody = document.getElementById('weeklyScheduleBody');
+
+        async function loadWeeklySchedule() {
+            try {
+                const response = await fetch(`${API_URL}/api/schedule/${user.id}`);
+                const data = await response.json();
+                const existing = data.schedule.schedules || [];
+
+                weeklyBody.innerHTML = '';
+                days.forEach(day => {
+                    const row = existing.find(s => s.day === day) || { start_time: '09:00', end_time: '17:00', slot_duration: 30 };
+                    const tr = document.createElement('tr');
+                    tr.style.background = 'white';
+                    tr.innerHTML = `
+                        <td style="font-weight: 600;">${day}</td>
+                        <td><input type="time" class="sched-start" data-day="${day}" value="${row.start_time}" style="padding:5px; border:1px solid #ddd; border-radius:4px;"></td>
+                        <td><input type="time" class="sched-end" data-day="${day}" value="${row.end_time}" style="padding:5px; border:1px solid #ddd; border-radius:4px;"></td>
+                        <td><input type="number" class="sched-dur" data-day="${day}" value="${row.slot_duration}" style="width:60px; padding:5px; border:1px solid #ddd; border-radius:4px;"></td>
+                    `;
+                    weeklyBody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Error loading schedule:", err);
+            }
+        }
+
+        async function saveWeeklySchedule() {
+            const schedules = [];
+            const starts = document.querySelectorAll('.sched-start');
+            const ends = document.querySelectorAll('.sched-end');
+            const durs = document.querySelectorAll('.sched-dur');
+
+            for (let i = 0; i < days.length; i++) {
+                schedules.push({
+                    day: days[i],
+                    start_time: starts[i].value,
+                    end_time: ends[i].value,
+                    slot_duration: parseInt(durs[i].value) || 30
+                });
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/schedule/manage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ doctor_id: user.id, schedules })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert("Weekly schedule saved successfully!");
+                    loadSlots(); // Refresh current view
+                }
+            } catch (err) {
+                alert("Failed to save schedule.");
+            }
+        }
+
+        // Initialize
+        loadWeeklySchedule();
+
+
+        // =====================================================
+        //  EXISTING: Availability Management (Overrides)
+        // =====================================================
+        const availDate = document.getElementById('availDate');
+        const availTime = document.getElementById('availTime');
+        const slotsList = document.getElementById('slotsList');
+
+        // Set default date to today
+        const todayStr = new Date().toISOString().split('T')[0];
+        availDate.value = todayStr;
+        availDate.min = todayStr;
+
+        // Load slots when date changes
+        availDate.addEventListener('change', loadSlots);
+        loadSlots();
+
+        async function loadSlots() {
+            const date = availDate.value;
+            if (!date) return;
+
+            slotsList.innerHTML = '<p style="grid-column: 1/-1;">Loading slots...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/availability/${user.id}?date=${date}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.slots.length === 0) {
+                        slotsList.innerHTML = '<p style="grid-column: 1/-1; color: #999;">No slots defined for this date.</p>';
+                    } else {
+                        slotsList.innerHTML = '';
+                        data.slots.forEach(slot => {
+                            const isBooked = slot.status === 'booked';
+                            const div = document.createElement('div');
+                            div.style = `
+                                padding: 10px; 
+                                border: 1px solid #ddd; 
+                                border-radius: 4px; 
+                                background: ${isBooked ? '#fff3cd' : '#e8f5e9'};
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                font-size: 0.9rem;
+                            `;
+                            div.innerHTML = `
+                                <div>
+                                    <div style="font-weight: 600;">${slot.time_slot}</div>
+                                    <div style="font-size: 0.7rem; color: ${isBooked ? '#856404' : '#155724'}">${slot.status.toUpperCase()}</div>
+                                </div>
+                                ${!isBooked ? `<button onclick="deleteSlot('${slot.slot_id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer; font-size:1.2rem;">&times;</button>` : ''}
+                            `;
+                            slotsList.appendChild(div);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading slots:", err);
+                slotsList.innerHTML = '<p style="grid-column: 1/-1; color:red;">Connection error.</p>';
+            }
+        }
+
+        async function addSlot() {
+            const date = availDate.value;
+            const timeRaw = availTime.value;
+            if (!date || !timeRaw) {
+                alert("Please select both date and time.");
+                return;
+            }
+
+            // Convert HTML time (24h) to 12h format for display
+            const [hours, minutes] = timeRaw.split(':');
+            const dateObj = new Date();
+            dateObj.setHours(hours);
+            dateObj.setMinutes(minutes);
+            const timeSlot = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+            try {
+                const response = await fetch(`${API_URL}/api/availability/manage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        doctor_id: user.id,
+                        date,
+                        time_slot: timeSlot,
+                        status: 'available'
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    loadSlots();
+                    availTime.value = '';
+                } else {
+                    alert(data.error || "Failed to add slot.");
+                }
+            } catch (err) {
+                console.error("Error adding slot:", err);
+            }
+        }
+
+        async function blockDay() {
+            const date = availDate.value;
+            if (!date) {
+                alert("Please select a date to block.");
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to block the entire day on ${date}? This will override your weekly schedule.`)) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/availability/manage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        doctor_id: user.id,
+                        date,
+                        time_slot: 'FULL_DAY',
+                        status: 'blocked'
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    loadSlots();
+                }
+            } catch (err) {
+                console.error("Error blocking day:", err);
+            }
+        }
+
+        async function deleteSlot(slotId) {
+            if (!confirm("Remove this time slot?")) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/availability/${slotId}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (data.success) {
+                    loadSlots();
+                }
+            } catch (err) {
+                alert("Delete failed.");
+            }
+        }
+
+        function completeAppt(id) {
+            let appointments = getAppointments();
+            const idx = appointments.findIndex(a => a.id === id);
+            if (idx !== -1) {
+                appointments[idx].status = 'Completed';
+                localStorage.setItem('appointments', JSON.stringify(appointments));
+                location.reload();
+            }
+        }
+
+        // Render Appointment Table
+        const tbody = document.getElementById('apptTable');
+        if (myAppts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center">No appointments found.</td></tr>`;
+        } else {
+            myAppts.sort((a, b) => new Date(a.date) - new Date(b.date));
+            myAppts.forEach(appt => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${appt.patientName}</td>
+                    <td>${appt.date}</td>
+                    <td>${appt.time}</td>
+                    <td><span style="color:green; font-weight:bold;">${appt.status}</span></td>
+                    <td>${appt.status !== 'Completed' ? `<button onclick="completeAppt(${appt.id})" class="btn" style="padding:5px 10px; font-size:0.8rem;">Complete</button>` : 'N/A'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+
+</html>

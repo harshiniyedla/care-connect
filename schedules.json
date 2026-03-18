@@ -1,0 +1,143 @@
+[
+  {
+    "doctor_id": 1,
+    "schedules": [
+      {
+        "day": "Monday",
+        "start_time": "10:00",
+        "end_time": "13:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Tuesday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Wednesday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Thursday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Friday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Saturday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Sunday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      }
+    ]
+  },
+  {
+    "doctor_id": 14,
+    "schedules": [
+      {
+        "day": "Monday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Tuesday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Wednesday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Thursday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Friday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Saturday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Sunday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      }
+    ]
+  },
+  {
+    "doctor_id": 22,
+    "schedules": [
+      {
+        "day": "Monday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Tuesday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Wednesday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Thursday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Friday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Saturday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      },
+      {
+        "day": "Sunday",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "slot_duration": 30
+      }
+    ]
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "slot_id": "slot_1773069335237_377",
+    "doctor_id": 2,
+    "date": "2026-03-11",
+    "time_slot": "11:00",
+    "status": "available"
+  },
+  {
+    "slot_id": "slot_1773069896445_739",
+    "doctor_id": 3,
+    "date": "2026-03-10",
+    "time_slot": "11:00",
+    "status": "available"
+  },
+  {
+    "slot_id": "slot_1773071113429_144",
+    "doctor_id": 1,
+    "date": "2026-03-09",
+    "time_slot": "09:30 AM",
+    "status": "booked"
+  },
+  {
+    "slot_id": "booked_1773073135175",
+    "doctor_id": 1,
+    "date": "2026-03-09",
+    "time_slot": "10:00 AM",
+    "status": "booked"
+  },
+  {
+    "slot_id": "booked_1773076464587",
+    "doctor_id": 22,
+    "date": "2026-03-09",
+    "time_slot": "11:00 AM",
+    "status": "booked"
+  }
+]

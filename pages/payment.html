@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - CareConnect</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- =====================================================
+         ADDED: Razorpay Checkout.js — official payment SDK
+         This script loads the Razorpay payment popup
+    ====================================================== -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        .payment-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .summary-box {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        /* ADDED: Payment method icons row */
+        .payment-methods {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px 15px;
+            background: #f0f8f0;
+            border-radius: 6px;
+            border: 1px solid #c8e6c9;
+            flex-wrap: wrap;
+        }
+
+        .payment-methods span {
+            font-size: 0.85rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .payment-methods .method-badge {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .pay-btn {
+            width: 100%;
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .pay-btn:hover {
+            background: #219150;
+        }
+
+        .pay-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        /* ADDED: Payment error message style */
+        .payment-error {
+            display: none;
+            background: #fdecea;
+            color: #c0392b;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 12px 15px;
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* ADDED: Secure badge */
+        .secure-badge {
+            text-align: center;
+            color: #888;
+            font-size: 0.8rem;
+            margin-top: 12px;
+        }
+
+        .secure-badge span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="../index.html" class="logo">CareConnect</a>
+        <!-- Simple Nav for checkout -->
+    </nav>
+
+    <div class="container">
+        <div class="payment-container">
+            <h2 class="text-center">Secure Payment</h2>
+
+            <div id="bookingSummary" class="summary-box">
+                <!-- Injected by JS -->
+                <p>Loading summary...</p>
+            </div>
+
+            <h3 style="margin: 15px 0 10px;">Total Amount: <span id="totalAmount">₹0</span></h3>
+
+            <!-- ADDED: Payment method indicators -->
+            <div class="payment-methods">
+                <span>Pay via:</span>
+                <span class="method-badge">UPI</span>
+                <span class="method-badge">Credit Card</span>
+                <span class="method-badge">Debit Card</span>
+                <span class="method-badge">Net Banking</span>
+            </div>
+
+            <!-- CHANGED: Replaced fake card form with a single Pay Now button.
+                 Clicking this button opens the real Razorpay payment popup. -->
+            <button id="razorpayBtn" class="pay-btn" onclick="initiateRazorpayPayment()">
+                🔒 Pay Now
+            </button>
+
+            <!-- ADDED: Payment failure message (hidden by default) -->
+            <div id="paymentError" class="payment-error">
+                ❌ Payment failed or was cancelled. Please try again.
+            </div>
+
+            <!-- ADDED: Secure payment badge -->
+            <div class="secure-badge">
+                <span>🔒 Secured by Razorpay. Your payment info is encrypted.</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="../script.js?v=37"></script>
+    <script>
+        // ─── Retrieve pending booking from localStorage (existing logic, unchanged) ───
+        const pendingBooking = JSON.parse(localStorage.getItem('pendingBooking'));
+
+        if (!pendingBooking) {
+            alert("No booking found. Redirecting to home.");
+            window.location.href = '../index.html';
+        }
+
+        const summaryDiv = document.getElementById('bookingSummary');
+        const totalSpan = document.getElementById('totalAmount');
+
+        if (pendingBooking) {
+            summaryDiv.innerHTML = `
+                <h3>Booking Summary</h3>
+                <p><strong>Doctor:</strong> ${pendingBooking.doctorName}</p>
+                <p><strong>Hospital:</strong> ${pendingBooking.hospital || 'CareConnect Hospital'}</p>
+                <p><strong>Date:</strong> ${pendingBooking.date}</p>
+                <p><strong>Time:</strong> ${pendingBooking.time}</p>
+                <p><strong>Patient:</strong> ${pendingBooking.patientName}</p>
+            `;
+            totalSpan.innerText = '₹' + pendingBooking.fee;
+        }
+
+        // ─── EXISTING booking confirmation logic (unchanged) ────────────────────────
+        // This function is called after payment is successfully verified.
+        async function confirmBooking(paymentId) {
+            // 1. Mark slot as booked in backend (NEW FEATURE)
+            try {
+                await fetch(`${API_URL}/api/book-slot`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        doctor_id: pendingBooking.doctorId,
+                        date: pendingBooking.date,
+                        time_slot: pendingBooking.time
+                    })
+                });
+                console.log('[Availability] Slot marked as booked in database.');
+            } catch (err) {
+                console.error('[Availability] Failed to mark slot as booked:', err);
+            }
+
+            // 2. Save to actual appointments (existing logic)
+            let appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+
+            // Attach payment ID to the booking record
+            const confirmedBooking = { ...pendingBooking, paymentId: paymentId, status: 'Paid' };
+            appointments.push(confirmedBooking);
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+
+            // 3. Store for the confirmation page (new logic)
+            localStorage.setItem('lastConfirmedBooking', JSON.stringify(confirmedBooking));
+
+            // 4. Clear pending (existing logic)
+            localStorage.removeItem('pendingBooking');
+
+            // 5. Redirect to NEW confirmation page
+            window.location.href = 'confirmation.html';
+        }
+
+        // ─── ADDED: Razorpay Payment Flow ────────────────────────────────────────────
+
+        /**
+         * Step 1 — Call our backend to create a Razorpay order.
+         *          The backend returns { order_id, amount, currency, key_id }.
+         */
+        async function createOrder(amount) {
+            try {
+                const response = await fetch(`${API_URL}/api/create-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: amount,          // amount in INR
+                        currency: 'INR',
+                        receipt: `receipt_${Date.now()}`,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Server error while creating payment order.');
+                }
+                return data;
+            } catch (err) {
+                // If it's a fetch error (server down), throw a specific message
+                if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+                    throw new Error('Connection failed: The payment backend (server.js) is not reachable. Please ensure it is running on port 3001.');
+                }
+                throw err;
+            }
+        }
+
+        /**
+         * Step 2 — Verify the payment signature on our backend.
+         */
+        async function verifyPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature) {
+            const response = await fetch(`${API_URL}/api/verify-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    razorpay_order_id,
+                    razorpay_payment_id,
+                    razorpay_signature,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Payment verification failed.');
+            }
+            return data;
+        }
+
+        /**
+         * Main function triggered by the Pay Now button.
+         */
+        async function initiateRazorpayPayment() {
+            const btn = document.getElementById('razorpayBtn');
+            const errorDiv = document.getElementById('paymentError');
+
+            errorDiv.style.display = 'none';
+            btn.innerText = 'Processing...';
+            btn.disabled = true;
+
+            try {
+                // Step 1: Create order via backend
+                const orderData = await createOrder(pendingBooking.fee);
+
+                // Step 2: Configure Razorpay Checkout options
+                const options = {
+                    key: orderData.key_id,
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                    name: 'CareConnect',
+                    description: `Appointment with ${pendingBooking.doctorName}`,
+                    image: '../assets/background.jpg',
+                    order_id: orderData.order_id,
+
+                    prefill: {
+                        name: pendingBooking.patientName || '',
+                        contact: pendingBooking.phone || '',
+                    },
+
+                    theme: { color: '#27ae60' },
+
+                    handler: async function (response) {
+                        try {
+                            const verification = await verifyPayment(
+                                response.razorpay_order_id,
+                                response.razorpay_payment_id,
+                                response.razorpay_signature
+                            );
+
+                            if (verification.success) {
+                                confirmBooking(response.razorpay_payment_id);
+                            }
+                        } catch (err) {
+                            console.error('[Payment] Verification error:', err);
+                            errorDiv.innerText = `❌ Verification Error: ${err.message}`;
+                            errorDiv.style.display = 'block';
+                            btn.innerText = '🔒 Pay Now';
+                            btn.disabled = false;
+                        }
+                    },
+
+                    modal: {
+                        ondismiss: function () {
+                            console.log('[Payment] Razorpay popup dismissed.');
+                            errorDiv.innerText = '❌ Payment was cancelled.';
+                            errorDiv.style.display = 'block';
+                            btn.innerText = '🔒 Pay Now';
+                            btn.disabled = false;
+                        }
+                    },
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response) {
+                    errorDiv.innerText = `❌ Payment Failed: ${response.error.description}`;
+                    errorDiv.style.display = 'block';
+                    btn.innerText = '🔒 Pay Now';
+                    btn.disabled = false;
+                });
+
+                rzp.open();
+
+            } catch (err) {
+                console.error('[Payment] Error:', err);
+                // Show the specific error message provided by the server or catch block
+                errorDiv.innerText = `❌ ${err.message}`;
+                errorDiv.style.display = 'block';
+                btn.innerText = '🔒 Pay Now';
+                btn.disabled = false;
+            }
+        }
+        // ─── END: Razorpay integration ────────────────────────────────────────────
+    </script>
+</body>
+
+</html>

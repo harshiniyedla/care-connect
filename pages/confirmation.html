@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmed - CareConnect</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .confirmation-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+
+        .confirmation-details {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 5px solid #27ae60;
+        }
+
+        .confirmation-details p {
+            margin: 10px 0;
+            font-size: 1.05rem;
+            color: #333;
+        }
+
+        .confirmation-details strong {
+            color: #555;
+            width: 140px;
+            display: inline-block;
+        }
+
+        .payment-status {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            background: #f1f2f6;
+            color: #2f3542;
+            border: 1px solid #dfe4ea;
+        }
+
+        .btn-secondary:hover {
+            background: #dfe4ea;
+        }
+
+        @media (max-width: 600px) {
+            .button-group {
+                flex-direction: column;
+            }
+
+            .confirmation-details strong {
+                display: block;
+                margin-bottom: 2px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="../index.html" class="logo">CareConnect</a>
+    </nav>
+
+    <div class="container">
+        <div class="confirmation-container">
+            <div class="success-icon">✅</div>
+            <h2>Appointment Confirmed</h2>
+            <p style="color: #666;">Thank you! Your appointment has been successfully scheduled.</p>
+
+            <div id="confirmationDetails" class="confirmation-details">
+                <!-- Data injected by JS -->
+                <p>Loading appointment details...</p>
+            </div>
+
+            <div class="button-group">
+                <a href="appointments.html" class="btn">Go to My Appointments</a>
+                <a href="../index.html" class="btn btn-secondary">Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         ADDED: jsPDF library for client-side PDF generation
+    ====================================================== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Retrieve the confirmed booking from localStorage
+            const confirmedBooking = JSON.parse(localStorage.getItem('lastConfirmedBooking'));
+
+            if (!confirmedBooking) {
+                // If accessed directly without a booking, redirect to home
+                console.warn("No confirmed booking found in storage.");
+                window.location.href = '../index.html';
+                return;
+            }
+
+            const detailsDiv = document.getElementById('confirmationDetails');
+
+            detailsDiv.innerHTML = `
+                <p><strong>Doctor:</strong> ${confirmedBooking.doctorName}</p>
+                <p><strong>Hospital:</strong> ${confirmedBooking.hospital || 'CareConnect Partner Hospital'}</p>
+                <p><strong>Date:</strong> ${confirmedBooking.date}</p>
+                <p><strong>Time:</strong> ${confirmedBooking.time}</p>
+                <p><strong>Patient:</strong> ${confirmedBooking.patientName}</p>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+                <p><strong>Payment Status:</strong> <span class="payment-status">Paid</span></p>
+                <p><strong>Payment ID:</strong> <span style="font-family: monospace; font-size: 0.9rem;">${confirmedBooking.paymentId || 'N/A'}</span></p>
+            `;
+
+            // ADDED: Download button after details are loaded
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'btn';
+            downloadBtn.style.width = '100%';
+            downloadBtn.style.marginTop = '15px';
+            downloadBtn.style.background = '#34495e';
+            downloadBtn.innerHTML = '📄 Download Receipt (PDF)';
+            downloadBtn.onclick = generatePDF;
+            detailsDiv.appendChild(downloadBtn);
+
+            function generatePDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const b = confirmedBooking;
+
+                // Receipt Styling & Content
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(22);
+                doc.setTextColor(39, 174, 96); // CareConnect Green
+                doc.text("CareConnect", 105, 20, { align: "center" });
+
+                doc.setFontSize(16);
+                doc.setTextColor(0, 0, 0);
+                doc.text("Appointment Receipt", 105, 30, { align: "center" });
+
+                doc.setLineWidth(0.5);
+                doc.line(20, 35, 190, 35);
+
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "normal");
+
+                let y = 50;
+                const lineH = 10;
+
+                const addLine = (label, value) => {
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`${label}:`, 20, y);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`${value}`, 60, y);
+                    y += lineH;
+                };
+
+                addLine("Patient Name", b.patientName);
+                addLine("Doctor", b.doctorName);
+                addLine("Specialization", b.doctorSpec || "Specialist");
+                addLine("Hospital", b.hospital || "CareConnect Partner Hospital");
+                addLine("Date", b.date);
+                addLine("Time Slot", b.time);
+
+                y += 5;
+                doc.line(20, y, 190, y);
+                y += 10;
+
+                addLine("Payment Status", "Paid");
+                addLine("Payment ID", b.paymentId || "N/A");
+                addLine("Amount Paid", `INR ${b.fee}`);
+
+                y += 20;
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                doc.text("This is a computer-generated receipt.", 105, y, { align: "center" });
+
+                // Save PDF
+                const filename = `appointment-receipt-${b.paymentId || 'booking'}.pdf`;
+                doc.save(filename);
+            }
+        });
+    </script>
+</body>
+
+</html>

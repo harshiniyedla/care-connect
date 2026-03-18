@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctors - CareConnect</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <nav>
+        <a href="../index.html" class="logo"><i class="fas fa-heartbeat"></i> CareConnect</a>
+        <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+        <ul class="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="doctors.html">Doctors</a></li>
+            <li><a href="appointments.html">My Appointments</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2 class="section-title">Find a Doctor</h2>
+
+        <div class="filter-section">
+            <div class="filters">
+                <select id="cityFilter" onchange="filterDoctors()">
+                    <option value="all">All Cities</option>
+                    <option value="Hyderabad">Hyderabad</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Mumbai">Mumbai</option>
+                </select>
+
+                <select id="specFilter" onchange="filterDoctors()">
+                    <option value="all">All Specializations</option>
+                    <option value="Cardiologist">Cardiologist</option>
+                    <option value="Neurologist">Neurologist</option>
+                    <option value="Dermatologist">Dermatologist</option>
+                    <option value="General Physician">General Physician</option>
+                    <option value="Orthopedic">Orthopedic</option>
+                    <option value="Pediatrician">Pediatrician</option>
+                    <option value="Gynecologist">Gynecologist</option>
+                    <option value="Psychiatrist">Psychiatrist</option>
+                    <option value="ENT Specialist">ENT Specialist</option>
+                    <option value="Dentist">Dentist</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="doctors-grid" id="doctorsContainer">
+            <!-- Doctors injected by JS -->
+        </div>
+    </div>
+
+    <script src="../script.js?v=37"></script>
+    <script>
+        const container = document.getElementById('doctorsContainer');
+        const cityFilter = document.getElementById('cityFilter');
+        const specFilter = document.getElementById('specFilter');
+
+        function renderDoctors(docs) {
+            container.innerHTML = '';
+            if (docs.length === 0) {
+                container.innerHTML = '<p class="text-center">No doctors found matching criteria.</p>';
+                return;
+            }
+
+            docs.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = 'doctor-card';
+                card.innerHTML = `
+                <img src="../${doc.image}" alt="${doc.name}">
+                    <h3>${doc.name}</h3>
+                    <p class="specialty">${doc.specialization}</p>
+                    <p class="hospital"><i class="fas fa-hospital-alt"></i> ${doc.hospital || 'CareConnect Hospital'}</p>
+                    <p>Exp: ${doc.experience}</p>
+                    <div class="rating"><i class="fas fa-star"></i> ${doc.rating}</div>
+                    <p class="fee">Fee: ₹${doc.fee}</p>
+                    <br>
+                    <a href="doctor-details.html?id=${doc.id}" class="btn">View Details</a>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterDoctors() {
+            const city = cityFilter.value.toLowerCase();
+            const spec = specFilter.value.toLowerCase();
+
+            console.log("Filtering for:", city, spec);
+            console.log("Total doctors available:", doctors.length);
+
+            let filtered = doctors.filter(d => {
+                const cityMatch = city === 'all' || (d.city && d.city.toLowerCase() === city);
+                const specMatch = spec === 'all' || (d.specialization && d.specialization.toLowerCase() === spec);
+                return cityMatch && specMatch;
+            });
+
+            console.log("Found:", filtered.length);
+            renderDoctors(filtered);
+        }
+
+        // Initial Render
+        renderDoctors(doctors);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "care-connect-booking",
+  "version": "1.0.0",
+  "description": "Doctor Appointment Booking System",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server.js"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "razorpay": "^2.9.6"
+  }
+}

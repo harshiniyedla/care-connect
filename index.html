@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareConnect - Hospital Booking</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="logo"><i class="fas fa-heartbeat"></i> CareConnect</a>
+        <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="pages/doctors.html">Doctors</a></li>
+            <li><a href="pages/appointments.html">My Appointments</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <header class="hero">
+            <h1>Doctor Appointment Booking System</h1>
+            <p>Simple, reliable, and fast. Book your appointment with the best doctors in the city.</p>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search doctor or specialization...">
+                <button onclick="searchDocs()"><i class="fas fa-search"></i> Search</button>
+            </div>
+        </header>
+
+        <section>
+            <section>
+                <h2 class="section-title">Top Doctors in Hyderabad</h2>
+                <div class="doctors-grid" id="hydDoctors">
+                    <!-- Hyderabad Doctors -->
+                </div>
+
+                <h2 class="section-title">Top Doctors in Delhi</h2>
+                <div class="doctors-grid" id="delhiDoctors">
+                    <!-- Delhi Doctors -->
+                </div>
+
+                <h2 class="section-title">Top Doctors in Mumbai</h2>
+                <div class="doctors-grid" id="mumbaiDoctors">
+                    <!-- Mumbai Doctors -->
+                </div>
+
+                <div class="text-center mt-20">
+                    <a href="pages/doctors.html" class="btn">View All Doctors</a>
+                </div>
+            </section>
+    </div>
+
+    <script src="script.js?v=38"></script>
+    <script>
+        // Home page specific logic
+        const hydContainer = document.getElementById('hydDoctors');
+        const delhiContainer = document.getElementById('delhiDoctors');
+        const mumbaiContainer = document.getElementById('mumbaiDoctors');
+
+        function createDoctorCard(doc) {
+            const card = document.createElement('div');
+            card.className = 'doctor-card';
+            card.innerHTML = `
+                <img src="${doc.image}" alt="${doc.name}">
+                <h3>${doc.name}</h3>
+                <p class="specialty">${doc.specialization}</p>
+                <p class="hospital"><i class="fas fa-hospital-alt"></i> ${doc.hospital}</p>
+                <p class="exp">Exp: ${doc.experience}</p>
+                <div class="rating"><i class="fas fa-star"></i> ${doc.rating}</div>
+                <br>
+                <a href="pages/doctor-details.html?id=${doc.id}" class="btn">Book Now</a>
+            `;
+            return card;
+        }
+
+        // Load Hyderabad Doctors (Limit 3)
+        const hydDocs = getDoctorsByCity('Hyderabad').slice(0, 3);
+        hydDocs.forEach(doc => {
+            hydContainer.appendChild(createDoctorCard(doc));
+        });
+
+        // Load Delhi Doctors (Limit 3)
+        const delhiDocs = getDoctorsByCity('Delhi').slice(0, 3);
+        delhiDocs.forEach(doc => {
+            delhiContainer.appendChild(createDoctorCard(doc));
+        });
+
+        // Load Mumbai Doctors (Limit 3)
+        const mumbaiDocs = getDoctorsByCity('Mumbai').slice(0, 3);
+        mumbaiDocs.forEach(doc => {
+            mumbaiContainer.appendChild(createDoctorCard(doc));
+        });
+
+        function searchDocs() {
+            window.location.href = 'pages/doctors.html';
+        }
+    </script>
+</body>
+
+</html>

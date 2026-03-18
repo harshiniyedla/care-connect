@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CareConnect</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #777;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="../index.html" class="logo">CareConnect</a>
+        <button class="mobile-menu-btn">☰</button>
+        <ul class="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="doctors.html">Doctors</a></li>
+            <li><a href="appointments.html">My Appointments</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="login-container">
+            <h2>Login</h2>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('patient')">Patient</button>
+                <button class="tab-btn" onclick="switchTab('doctor')">Doctor</button>
+            </div>
+
+            <!-- Patient Login -->
+            <form id="patientForm" class="login-form active">
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" placeholder="Enter Mobile Number" required>
+                </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="patientName" placeholder="Enter Your Name" required>
+                </div>
+                <button type="submit" class="btn" style="width:100%;">Login as Patient</button>
+            </form>
+
+            <!-- Doctor Login -->
+            <form id="doctorForm" class="login-form">
+                <div class="form-group">
+                    <label>Select Doctor ID</label>
+                    <select id="doctorSelect" required>
+                        <option value="">Select your profile...</option>
+                        <!-- Injected by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="Any password works" required>
+                </div>
+                <button type="submit" class="btn" style="width:100%;">Login as Doctor</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../script.js?v=37"></script>
+    <script>
+        console.log("Login page script loaded");
+
+        // Fallback Login Function in case script.js fails to expose it
+        function performLogin(name, role, id = null) {
+            console.log("Performing Login:", name, role, id);
+            const user = { name, role, id };
+            localStorage.setItem('currentUser', JSON.stringify(user));
+
+            if (role === 'doctor') {
+                window.location.href = 'doctor-dashboard.html';
+            } else {
+                window.location.href = 'doctors.html';
+            }
+        }
+
+        // Global definition check
+        if (typeof window.login !== 'function') {
+            console.warn("Global login not found, using fallback.");
+            window.login = performLogin;
+        }
+
+        function switchTab(role) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+
+            if (role === 'patient') {
+                document.querySelector('button[onclick="switchTab(\'patient\')"]').classList.add('active');
+                document.getElementById('patientForm').classList.add('active');
+            } else {
+                document.querySelector('button[onclick="switchTab(\'doctor\')"]').classList.add('active');
+                document.getElementById('doctorForm').classList.add('active');
+            }
+        }
+
+        // Populate Doctor Select
+        const docSelect = document.getElementById('doctorSelect');
+        if (typeof doctors !== 'undefined') {
+            doctors.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.innerText = d.name;
+                docSelect.appendChild(opt);
+            });
+        } else {
+            // Try to use a small hardcoded list if doctors are missing too, 
+            // but usually data loads fine.
+            console.error("Doctors data not found!");
+        }
+
+        // Patient Login Handler
+        document.getElementById('patientForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            console.log("Patient form submitted");
+            const name = document.getElementById('patientName').value;
+            if (name) {
+                window.login(name, 'patient');
+            }
+        });
+
+        // Doctor Login Handler
+        document.getElementById('doctorForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            console.log("Doctor form submitted");
+            const docId = document.getElementById('doctorSelect').value;
+
+            // If getDoctorById is missing, find in array manually
+            let doc = null;
+            if (typeof getDoctorById === 'function') {
+                doc = getDoctorById(docId);
+            } else if (typeof doctors !== 'undefined') {
+                doc = doctors.find(d => d.id == docId);
+            }
+
+            if (doc) {
+                window.login(doc.name, 'doctor', doc.id);
+            } else {
+                alert("Please select a doctor.");
+            }
+        });
+    </script>
+</body>
+
+</html>
