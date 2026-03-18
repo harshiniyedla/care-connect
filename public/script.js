@@ -152,6 +152,17 @@ function getTopDoctors(limit = 3) {
 // --- Init Logic ---
 document.addEventListener('DOMContentLoaded', () => {
     updateNavbar();
+
+    // Mobile Menu Toggle logic
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (menuBtn && navLinks) {
+        menuBtn.addEventListener('click', () => {
+            console.log("Mobile menu toggled");
+            navLinks.classList.toggle('active');
+        });
+    }
 });
 
 // Authentication logic
