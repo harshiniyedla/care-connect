@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Confirmed - CareConnect</title>
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         .confirmation-container {
@@ -88,7 +88,7 @@
 <body>
 
     <nav>
-        <a href="../index.html" class="logo">CareConnect</a>
+        <a href="/" class="logo">CareConnect</a>
     </nav>
 
     <div class="container">
@@ -103,8 +103,8 @@
             </div>
 
             <div class="button-group">
-                <a href="appointments.html" class="btn">Go to My Appointments</a>
-                <a href="../index.html" class="btn btn-secondary">Back to Home</a>
+                <a href="/pages/appointments.html" class="btn">Go to My Appointments</a>
+                <a href="/" class="btn btn-secondary">Back to Home</a>
             </div>
         </div>
     </div>
@@ -122,7 +122,7 @@
             if (!confirmedBooking) {
                 // If accessed directly without a booking, redirect to home
                 console.warn("No confirmed booking found in storage.");
-                window.location.href = '../index.html';
+                window.location.href = '/';
                 return;
             }
 

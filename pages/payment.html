@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment - CareConnect</title>
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
     <!-- =====================================================
@@ -113,8 +113,7 @@
 <body>
 
     <nav>
-        <a href="../index.html" class="logo">CareConnect</a>
-        <!-- Simple Nav for checkout -->
+        <a href="/" class="logo">CareConnect</a>
     </nav>
 
     <div class="container">
@@ -155,14 +154,14 @@
         </div>
     </div>
 
-    <script type="module" src="/script.js"></script>
+    <script src="/script.js"></script>
     <script>
         // ─── Retrieve pending booking from localStorage (existing logic, unchanged) ───
         const pendingBooking = JSON.parse(localStorage.getItem('pendingBooking'));
 
         if (!pendingBooking) {
             alert("No booking found. Redirecting to home.");
-            window.location.href = '../index.html';
+            window.location.href = '/';
         }
 
         const summaryDiv = document.getElementById('bookingSummary');
